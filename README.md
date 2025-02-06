@@ -126,10 +126,6 @@ To add a new mathematical property:
 2. Add the property check in the `classify_number` endpoint
 3. Update the properties list in the response
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Contributing
 
 1. Fork the repository
