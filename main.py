@@ -4,7 +4,6 @@ import requests
 
 app = FastAPI()
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -54,31 +53,34 @@ def get_fun_fact(n: int) -> str:
 
 @app.get("/api/classify-number")
 async def classify_number(number: int = Query(..., description="The number to classify")):
-    if not isinstance(number, int):
+    try:
+        if not isinstance(number, int):
+            raise HTTPException(status_code=400, detail={"number": str(number), "error": True})
+
+        properties = []
+        if is_prime(number):
+            properties.append("prime")
+        if is_perfect(number):
+            properties.append("perfect")
+        if is_armstrong(number):
+            properties.append("armstrong")
+        if number % 2 == 1:
+            properties.append("odd")
+        else:
+            properties.append("even")
+
+        fun_fact = get_fun_fact(number)
+
+        return {
+            "number": number,
+            "is_prime": is_prime(number),
+            "is_perfect": is_perfect(number),
+            "properties": properties,
+            "digit_sum": digit_sum(number),
+            "fun_fact": fun_fact
+        }
+    except Exception as e:
         raise HTTPException(status_code=400, detail={"number": str(number), "error": True})
-
-    properties = []
-    if is_prime(number):
-        properties.append("prime")
-    if is_perfect(number):
-        properties.append("perfect")
-    if is_armstrong(number):
-        properties.append("armstrong")
-    if number % 2 == 1:
-        properties.append("odd")
-    else:
-        properties.append("even")
-
-    fun_fact = get_fun_fact(number)
-
-    return {
-        "number": number,
-        "is_prime": is_prime(number),
-        "is_perfect": is_perfect(number),
-        "properties": properties,
-        "digit_sum": digit_sum(number),
-        "fun_fact": fun_fact
-    }
 
 if __name__ == "__main__":
     import uvicorn
