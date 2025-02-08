@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 import requests
 
 app = FastAPI()
@@ -40,12 +39,12 @@ def is_perfect(n: int) -> bool:
     return sum_divisors == n
 
 def is_armstrong(n: int) -> bool:
-    digits = [int(d) for d in str(n)]
+    digits = [int(d) for d in str(abs(n))]
     num_digits = len(digits)
-    return sum(d ** num_digits for d in digits) == n
+    return sum(d ** num_digits for d in digits) == abs(n)
 
 def digit_sum(n: int) -> int:
-    return sum(int(d) for d in str(n))
+    return sum(int(d) for d in str(abs(n)))  
 
 def get_fun_fact(n: int) -> str:
     url = f"http://numbersapi.com/{n}/math"
@@ -53,35 +52,36 @@ def get_fun_fact(n: int) -> str:
     return response.text if response.status_code == 200 else "No fun fact available."
 
 @app.get("/api/classify-number")
-async def classify_number(number: int = Query(..., description="The number to classify")):
+async def classify_number(number: str = Query(..., description="The number to classify")):
     try:
-        if not isinstance(number, int):
-            raise HTTPException(status_code=400, detail={"number": str(number), "error": True})
+        number_float = float(number)
+        number_int = int(number_float) if number_float.is_integer() else number_float
+    except ValueError:
+        raise HTTPException(status_code=400, detail={"number": number, "error": True})
 
-        properties = []
-        if is_prime(number):
+    properties = []
+    if isinstance(number_int, int): 
+        if is_prime(number_int):
             properties.append("prime")
-        if is_perfect(number):
+        if is_perfect(number_int):
             properties.append("perfect")
-        if is_armstrong(number):
-            properties.append("armstrong")
-        if number % 2 == 1:
-            properties.append("odd")
-        else:
-            properties.append("even")
+    if is_armstrong(number_int if isinstance(number_int, int) else int(number_float)):
+        properties.append("armstrong")
+    if isinstance(number_int, int) and number_int % 2 == 1:
+        properties.append("odd")
+    elif isinstance(number_int, int):
+        properties.append("even")
 
-        fun_fact = get_fun_fact(number)
+    fun_fact = get_fun_fact(number_int if isinstance(number_int, int) else int(number_float))
 
-        return {
-            "number": number,
-            "is_prime": is_prime(number),
-            "is_perfect": is_perfect(number),
-            "properties": properties,
-            "digit_sum": digit_sum(number),
-            "fun_fact": fun_fact
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail={"number": str(number), "error": True})
+    return {
+        "number": number_int if isinstance(number_int, int) else number_float,
+        "is_prime": is_prime(number_int) if isinstance(number_int, int) else False,
+        "is_perfect": is_perfect(number_int) if isinstance(number_int, int) else False,
+        "properties": properties,
+        "digit_sum": digit_sum(number_int if isinstance(number_int, int) else int(number_float)),
+        "fun_fact": fun_fact
+    }
 
 if __name__ == "__main__":
     import uvicorn
