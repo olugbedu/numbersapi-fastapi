@@ -39,7 +39,7 @@ def is_perfect(n: int) -> bool:
     return sum_divisors == n
 
 def is_armstrong(n: int) -> bool:
-    digits = [int(d) for d in str(abs(n))]
+    digits = [int(d) for d in str(abs(n))] 
     num_digits = len(digits)
     return sum(d ** num_digits for d in digits) == abs(n)
 
@@ -60,7 +60,7 @@ async def classify_number(number: str = Query(..., description="The number to cl
         raise HTTPException(status_code=400, detail={"number": number, "error": True})
 
     properties = []
-    if isinstance(number_int, int): 
+    if isinstance(number_int, int):  
         if is_prime(number_int):
             properties.append("prime")
         if is_perfect(number_int):
